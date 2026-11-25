@@ -1,0 +1,21 @@
+# Render Blueprint: New + > Blueprint, pick this repository. Free plan, no card needed.
+services:
+  - type: web
+    name: perfect-saturday-planner
+    runtime: python
+    plan: free
+    region: singapore          # closest Render region to India; change if you prefer
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    autoDeploy: true
+    # Python 3.12 comes from .python-version (tested on 3.11, 3.12 and 3.13).
+    envVars:
+      - key: OPENAI_MODEL
+        value: gpt-6-luna
+      - key: DAILY_LLM_RUN_CAP
+        value: "400"
+      - key: OPENAI_API_KEY    # paste the value in the Render dashboard, never in this file
+        sync: false
+      - key: CONTACT_EMAIL     # optional: an address for OpenStreetMap's usage policy
+        sync: false

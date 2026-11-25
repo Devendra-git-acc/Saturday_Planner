@@ -1,0 +1,720 @@
+{
+  "key": "pune",
+  "display": "Pune",
+  "aliases": [
+    "poona",
+    "pune city",
+    "pnq",
+    "puna"
+  ],
+  "avg_speed_kmph": 18,
+  "source": "curated",
+  "areas": {
+    "koregaon_park": {
+      "name": "Koregaon Park / Kalyani Nagar",
+      "lat": 18.5362,
+      "lon": 73.894
+    },
+    "camp": {
+      "name": "Camp / MG Road",
+      "lat": 18.5167,
+      "lon": 73.8777
+    },
+    "deccan": {
+      "name": "Deccan / FC Road / JM Road",
+      "lat": 18.5167,
+      "lon": 73.8412
+    },
+    "old_pune": {
+      "name": "Old Pune (Shaniwar Wada / Sadashiv Peth)",
+      "lat": 18.5158,
+      "lon": 73.8548
+    },
+    "yerwada": {
+      "name": "Yerwada",
+      "lat": 18.5524,
+      "lon": 73.9013
+    },
+    "sinhagad_road": {
+      "name": "Sinhagad Road",
+      "lat": 18.493,
+      "lon": 73.8302
+    },
+    "parvati": {
+      "name": "Parvati",
+      "lat": 18.4975,
+      "lon": 73.8441
+    },
+    "pashan": {
+      "name": "Pashan",
+      "lat": 18.5372,
+      "lon": 73.796
+    }
+  },
+  "places": [
+    {
+      "id": "pun-shaniwar",
+      "name": "Shaniwar Wada",
+      "kind": "activity",
+      "category": "fort ruins",
+      "area": "old_pune",
+      "lat": 18.5195,
+      "lon": 73.8553,
+      "tags": [
+        "history",
+        "photography"
+      ],
+      "cost": 25,
+      "duration": 60,
+      "min_duration": 40,
+      "max_duration": 90,
+      "hours": "08:00-18:30",
+      "energy": "low",
+      "crowd": "medium",
+      "peak": [
+        "16:00-18:30"
+      ],
+      "noise": "moderate",
+      "note": "Peshwa-era fort ruins with big open grounds; an easy, mostly flat walk.",
+      "verify": "Entry fee is approximate."
+    },
+    {
+      "id": "pun-agakhan",
+      "name": "Aga Khan Palace",
+      "kind": "activity",
+      "category": "palace museum",
+      "area": "yerwada",
+      "lat": 18.5524,
+      "lon": 73.9013,
+      "tags": [
+        "history",
+        "art",
+        "photography",
+        "nature"
+      ],
+      "cost": 25,
+      "duration": 75,
+      "min_duration": 45,
+      "max_duration": 110,
+      "hours": "09:00-17:30",
+      "energy": "low",
+      "crowd": "low",
+      "noise": "quiet",
+      "note": "Peaceful lawns and a Gandhi memorial museum; rarely crowded.",
+      "verify": "Entry fee approximate; closed on some public holidays."
+    },
+    {
+      "id": "pun-dagdusheth",
+      "name": "Dagdusheth Halwai Ganpati Temple",
+      "kind": "activity",
+      "category": "temple",
+      "area": "old_pune",
+      "lat": 18.5164,
+      "lon": 73.8561,
+      "tags": [
+        "spirituality",
+        "history"
+      ],
+      "cost": 0,
+      "duration": 45,
+      "min_duration": 20,
+      "max_duration": 90,
+      "hours": "06:00-23:00",
+      "energy": "low",
+      "crowd": "high",
+      "noise": "loud",
+      "note": "Pune's best-known Ganesh temple - devotional and very busy."
+    },
+    {
+      "id": "pun-kelkar",
+      "name": "Raja Dinkar Kelkar Museum",
+      "kind": "activity",
+      "category": "museum",
+      "area": "old_pune",
+      "tags": [
+        "history",
+        "art"
+      ],
+      "cost": 150,
+      "duration": 75,
+      "min_duration": 45,
+      "max_duration": 120,
+      "hours": "10:00-17:30",
+      "energy": "low",
+      "crowd": "low",
+      "noise": "quiet",
+      "indoor": true,
+      "note": "A very large private collection of everyday and decorative objects, displayed room by room.",
+      "verify": "Check ticket price and any photography rules."
+    },
+    {
+      "id": "pun-pashan",
+      "name": "Pashan Lake",
+      "kind": "activity",
+      "category": "lake walk",
+      "area": "pashan",
+      "lat": 18.5372,
+      "lon": 73.796,
+      "tags": [
+        "nature",
+        "walks",
+        "photography"
+      ],
+      "cost": 0,
+      "duration": 60,
+      "min_duration": 30,
+      "max_duration": 120,
+      "hours": "06:00-19:00",
+      "energy": "low",
+      "crowd": "low",
+      "peak": [
+        "17:00-19:00"
+      ],
+      "noise": "quiet",
+      "note": "Quiet lake edge with birdlife - best early or near sunset.",
+      "verify": "Water level and bird sightings vary by season."
+    },
+    {
+      "id": "pun-pld",
+      "name": "Pu La Deshpande Udyan (Japanese garden)",
+      "kind": "activity",
+      "category": "garden",
+      "area": "sinhagad_road",
+      "lat": 18.493,
+      "lon": 73.8302,
+      "tags": [
+        "nature",
+        "walks",
+        "photography"
+      ],
+      "cost": 30,
+      "duration": 75,
+      "min_duration": 45,
+      "max_duration": 120,
+      "hours": "06:00-20:00",
+      "energy": "low",
+      "crowd": "medium",
+      "peak": [
+        "17:00-19:30"
+      ],
+      "noise": "quiet",
+      "note": "Landscaped Japanese-style garden with long, flat paths.",
+      "verify": "Check opening hours and entry fee; sections can close mid-day."
+    },
+    {
+      "id": "pun-parvati",
+      "name": "Parvati Hill",
+      "kind": "activity",
+      "category": "hill climb",
+      "area": "parvati",
+      "lat": 18.4975,
+      "lon": 73.8441,
+      "tags": [
+        "walks",
+        "nature",
+        "history",
+        "spirituality"
+      ],
+      "cost": 5,
+      "duration": 75,
+      "min_duration": 50,
+      "max_duration": 110,
+      "hours": "05:00-20:00",
+      "energy": "high",
+      "crowd": "medium",
+      "peak": [
+        "06:00-08:30",
+        "17:00-19:30"
+      ],
+      "noise": "moderate",
+      "note": "A climb of roughly a hundred steps to temples with a city view - good exercise, not a rest."
+    },
+    {
+      "id": "pun-osho",
+      "name": "Osho Teerth Park",
+      "kind": "activity",
+      "category": "garden",
+      "area": "koregaon_park",
+      "lat": 18.5404,
+      "lon": 73.8954,
+      "tags": [
+        "nature",
+        "walks",
+        "wellness"
+      ],
+      "cost": 0,
+      "duration": 50,
+      "min_duration": 30,
+      "max_duration": 90,
+      "hours": "06:00-10:00,15:30-19:30",
+      "energy": "low",
+      "crowd": "low",
+      "noise": "quiet",
+      "note": "Shaded, quiet garden walk beside a stream.",
+      "verify": "Timings vary - check before going."
+    },
+    {
+      "id": "pun-abc",
+      "name": "Appa Balwant Chowk book lane",
+      "kind": "activity",
+      "category": "bookshops",
+      "area": "old_pune",
+      "lat": 18.5148,
+      "lon": 73.8531,
+      "tags": [
+        "books",
+        "markets"
+      ],
+      "cost": 100,
+      "duration": 60,
+      "min_duration": 30,
+      "max_duration": 120,
+      "hours": "10:30-20:30",
+      "energy": "low",
+      "crowd": "medium",
+      "peak": [
+        "17:00-20:00"
+      ],
+      "noise": "moderate",
+      "note": "Traditional bookshop cluster - Marathi and English titles, stationery and old magazines."
+    },
+    {
+      "id": "pun-tulshibaug",
+      "name": "Tulshibaug market",
+      "kind": "activity",
+      "category": "market",
+      "area": "old_pune",
+      "lat": 18.5139,
+      "lon": 73.8558,
+      "tags": [
+        "markets",
+        "shopping"
+      ],
+      "cost": 0,
+      "duration": 60,
+      "min_duration": 30,
+      "max_duration": 100,
+      "hours": "10:00-21:00",
+      "energy": "medium",
+      "crowd": "high",
+      "noise": "loud",
+      "note": "Packed lanes of utensils, bangles and household goods - vivid but very crowded."
+    },
+    {
+      "id": "pun-bgrm",
+      "name": "Bal Gandharva Rang Mandir (evening show)",
+      "kind": "activity",
+      "category": "theatre",
+      "area": "deccan",
+      "tags": [
+        "theatre",
+        "music",
+        "art"
+      ],
+      "cost": 400,
+      "duration": 120,
+      "min_duration": 90,
+      "max_duration": 150,
+      "hours": "16:00-21:30",
+      "energy": "low",
+      "crowd": "medium",
+      "noise": "quiet",
+      "indoor": true,
+      "note": "Pune's landmark auditorium for plays and concerts; seated and unhurried.",
+      "verify": "Only when a show is scheduled - check BookMyShow or the venue; many plays are in Marathi."
+    },
+    {
+      "id": "pun-highspirits",
+      "name": "High Spirits Cafe (live music)",
+      "kind": "activity",
+      "category": "live music venue",
+      "area": "koregaon_park",
+      "lat": 18.5362,
+      "lon": 73.8936,
+      "tags": [
+        "music",
+        "nightlife",
+        "food"
+      ],
+      "cost": 1000,
+      "duration": 120,
+      "min_duration": 75,
+      "max_duration": 180,
+      "hours": "19:30-23:30",
+      "energy": "low",
+      "crowd": "medium",
+      "peak": [
+        "20:00-23:30"
+      ],
+      "noise": "loud",
+      "indoor": true,
+      "alcohol_centric": true,
+      "note": "Long-running live-music cafe-bar. The live acts start in the evening, so this is planned for the evening only; loud and lively.",
+      "verify": "Live-act nights change - check the schedule.",
+      "live_only": true
+    },
+    {
+      "id": "pun-eaststreet",
+      "name": "East Street & MG Road stroll",
+      "kind": "activity",
+      "category": "shopping street",
+      "area": "camp",
+      "lat": 18.5128,
+      "lon": 73.879,
+      "tags": [
+        "shopping",
+        "walks",
+        "markets"
+      ],
+      "cost": 0,
+      "duration": 60,
+      "min_duration": 30,
+      "max_duration": 100,
+      "hours": "10:00-21:30",
+      "energy": "medium",
+      "crowd": "medium",
+      "peak": [
+        "17:00-21:00"
+      ],
+      "noise": "moderate",
+      "note": "Cantonment-era streets with shops, cafes and street stalls."
+    },
+    {
+      "id": "pun-goodluck",
+      "name": "Cafe Goodluck",
+      "kind": "food",
+      "category": "Irani cafe",
+      "area": "deccan",
+      "lat": 18.5171,
+      "lon": 73.842,
+      "tags": [
+        "food",
+        "coffee"
+      ],
+      "cost": 300,
+      "duration": 50,
+      "min_duration": 30,
+      "max_duration": 80,
+      "hours": "07:30-22:30",
+      "energy": "low",
+      "crowd": "medium",
+      "peak": [
+        "09:00-11:00",
+        "19:00-21:30"
+      ],
+      "noise": "moderate",
+      "diet": "veg_friendly",
+      "meal": [
+        "breakfast",
+        "lunch",
+        "snack",
+        "dinner"
+      ],
+      "indoor": true,
+      "note": "Classic FC Road Irani cafe - bun maska, chai and a wide menu."
+    },
+    {
+      "id": "pun-vaishali",
+      "name": "Vaishali",
+      "kind": "food",
+      "category": "South Indian restaurant",
+      "area": "deccan",
+      "lat": 18.5236,
+      "lon": 73.8412,
+      "tags": [
+        "food",
+        "coffee"
+      ],
+      "cost": 250,
+      "duration": 45,
+      "min_duration": 30,
+      "max_duration": 70,
+      "hours": "07:30-23:00",
+      "energy": "low",
+      "crowd": "medium",
+      "peak": [
+        "08:30-11:00",
+        "17:00-21:30"
+      ],
+      "noise": "moderate",
+      "diet": "pure_veg",
+      "meal": [
+        "breakfast",
+        "lunch",
+        "snack",
+        "dinner"
+      ],
+      "indoor": true,
+      "note": "FC Road institution for dosas, snacks and filter coffee."
+    },
+    {
+      "id": "pun-sujata",
+      "name": "Sujata Mastani",
+      "kind": "food",
+      "category": "dessert",
+      "area": "old_pune",
+      "lat": 18.511,
+      "lon": 73.8506,
+      "tags": [
+        "food"
+      ],
+      "cost": 150,
+      "duration": 30,
+      "min_duration": 20,
+      "max_duration": 45,
+      "hours": "09:00-22:00",
+      "energy": "low",
+      "crowd": "medium",
+      "peak": [
+        "16:00-21:30"
+      ],
+      "noise": "moderate",
+      "diet": "pure_veg",
+      "dairy_centric": true,
+      "meal": [
+        "snack"
+      ],
+      "note": "Pune's famous mastani - a thick fruit-and-ice-cream shake."
+    },
+    {
+      "id": "pun-kayani",
+      "name": "Kayani Bakery",
+      "kind": "food",
+      "category": "Irani bakery",
+      "area": "camp",
+      "lat": 18.5169,
+      "lon": 73.8767,
+      "tags": [
+        "food",
+        "coffee"
+      ],
+      "cost": 150,
+      "duration": 25,
+      "min_duration": 15,
+      "max_duration": 40,
+      "hours": "08:00-20:30",
+      "energy": "low",
+      "crowd": "medium",
+      "peak": [
+        "17:00-20:00"
+      ],
+      "noise": "moderate",
+      "diet": "veg_friendly",
+      "meal": [
+        "breakfast",
+        "snack"
+      ],
+      "note": "Shrewsbury biscuits and mawa cake - mostly a quick takeaway stop.",
+      "verify": "Weekly closing day and hours can change."
+    },
+    {
+      "id": "pun-vohuman",
+      "name": "Vohuman Cafe",
+      "kind": "food",
+      "category": "Irani cafe",
+      "area": "camp",
+      "lat": 18.5163,
+      "lon": 73.878,
+      "tags": [
+        "food",
+        "coffee",
+        "history"
+      ],
+      "cost": 250,
+      "duration": 45,
+      "min_duration": 30,
+      "max_duration": 70,
+      "hours": "08:00-20:00",
+      "energy": "low",
+      "crowd": "low",
+      "noise": "quiet",
+      "diet": "veg_friendly",
+      "meal": [
+        "breakfast",
+        "snack",
+        "lunch"
+      ],
+      "indoor": true,
+      "note": "Old-school Irani cafe with quiet corners.",
+      "verify": "Check closing time."
+    },
+    {
+      "id": "pun-german",
+      "name": "German Bakery",
+      "kind": "food",
+      "category": "bakery cafe",
+      "area": "koregaon_park",
+      "lat": 18.5388,
+      "lon": 73.8935,
+      "tags": [
+        "food",
+        "coffee"
+      ],
+      "cost": 450,
+      "duration": 60,
+      "min_duration": 40,
+      "max_duration": 90,
+      "hours": "07:30-23:00",
+      "energy": "low",
+      "crowd": "medium",
+      "peak": [
+        "10:00-14:00",
+        "18:00-22:00"
+      ],
+      "noise": "moderate",
+      "diet": "veg_friendly",
+      "meal": [
+        "breakfast",
+        "lunch",
+        "snack",
+        "dinner"
+      ],
+      "indoor": true,
+      "note": "Relaxed Koregaon Park bakery cafe with a broad menu."
+    },
+    {
+      "id": "pun-bluetokai",
+      "name": "Blue Tokai Coffee Roasters (Koregaon Park)",
+      "kind": "food",
+      "category": "specialty coffee",
+      "area": "koregaon_park",
+      "tags": [
+        "coffee",
+        "food"
+      ],
+      "cost": 350,
+      "duration": 45,
+      "min_duration": 25,
+      "max_duration": 75,
+      "hours": "08:00-22:00",
+      "energy": "low",
+      "crowd": "medium",
+      "peak": [
+        "10:00-13:00",
+        "17:00-20:00"
+      ],
+      "noise": "moderate",
+      "diet": "veg_friendly",
+      "meal": [
+        "breakfast",
+        "snack"
+      ],
+      "indoor": true,
+      "note": "Specialty coffee and light bites."
+    },
+    {
+      "id": "pun-shreyas",
+      "name": "Shreyas (Maharashtrian thali)",
+      "kind": "food",
+      "category": "thali restaurant",
+      "area": "deccan",
+      "lat": 18.518,
+      "lon": 73.8403,
+      "tags": [
+        "food"
+      ],
+      "cost": 350,
+      "duration": 60,
+      "min_duration": 40,
+      "max_duration": 90,
+      "hours": "11:30-15:30,19:00-22:00",
+      "energy": "low",
+      "crowd": "medium",
+      "peak": [
+        "12:30-14:30"
+      ],
+      "noise": "moderate",
+      "diet": "pure_veg",
+      "meal": [
+        "lunch",
+        "dinner"
+      ],
+      "indoor": true,
+      "note": "Traditional Maharashtrian vegetarian thali.",
+      "verify": "Thali service timings are approximate."
+    },
+    {
+      "id": "pun-chitale",
+      "name": "Chitale Bandhu Mithaiwale",
+      "kind": "food",
+      "category": "sweets & snacks",
+      "area": "old_pune",
+      "lat": 18.512,
+      "lon": 73.853,
+      "tags": [
+        "food"
+      ],
+      "cost": 200,
+      "duration": 30,
+      "min_duration": 15,
+      "max_duration": 45,
+      "hours": "08:30-21:30",
+      "energy": "low",
+      "crowd": "high",
+      "noise": "moderate",
+      "diet": "pure_veg",
+      "dairy_centric": true,
+      "meal": [
+        "snack",
+        "breakfast"
+      ],
+      "note": "Bakarwadi and sweets - mostly a busy takeaway counter."
+    },
+    {
+      "id": "pun-toit",
+      "name": "Toit Brewpub (Pune)",
+      "kind": "food",
+      "category": "brewpub",
+      "area": "koregaon_park",
+      "lat": 18.5367,
+      "lon": 73.8945,
+      "tags": [
+        "food",
+        "nightlife"
+      ],
+      "cost": 1400,
+      "duration": 90,
+      "min_duration": 60,
+      "max_duration": 150,
+      "hours": "12:00-23:30",
+      "energy": "low",
+      "crowd": "high",
+      "noise": "loud",
+      "diet": "veg_friendly",
+      "meal": [
+        "lunch",
+        "dinner"
+      ],
+      "alcohol_centric": true,
+      "indoor": true,
+      "note": "Busy, loud craft-beer pub - lively rather than restful."
+    },
+    {
+      "id": "pun-bbq",
+      "name": "Barbeque Nation (Pune)",
+      "kind": "food",
+      "category": "grill buffet",
+      "area": "koregaon_park",
+      "lat": 18.543,
+      "lon": 73.902,
+      "tags": [
+        "food"
+      ],
+      "cost": 1100,
+      "duration": 90,
+      "min_duration": 60,
+      "max_duration": 120,
+      "hours": "12:00-15:30,19:00-23:00",
+      "energy": "low",
+      "crowd": "high",
+      "noise": "loud",
+      "diet": "non_veg_focus",
+      "meal": [
+        "lunch",
+        "dinner"
+      ],
+      "indoor": true,
+      "note": "Grill-at-the-table buffet, centred on non-vegetarian dishes."
+    }
+  ]
+}
