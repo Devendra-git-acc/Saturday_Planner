@@ -60,3 +60,47 @@ def test_unknown_interests_are_listed_once_and_cleaned(settings):
 ])
 def test_clean_label(raw, expected):
     assert clean_label(raw) == expected
+
+
+# ------------------------------------------- JSON pasted into the free-text box
+
+BRIEF = {
+    "city": "Bangalore", "budget": 2000, "available_time": "4 hours", "mood": "tired but wants to do something fun",
+    "interests": ["food", "music", "walks"], "constraints": ["vegetarian", "avoid crowded places"],
+}
+
+
+def test_json_pasted_into_the_free_text_box_is_read_as_the_structured_input():
+    import json
+
+    pasted, structured = UserInput(free_text=json.dumps(BRIEF)), UserInput(**BRIEF)
+    assert pasted.model_dump() == structured.model_dump()
+    assert pasted.free_text is None and pasted.budget == 2000
+
+
+def test_pasted_json_gives_the_same_plan_as_the_form(settings):
+    import json
+
+    a = Agent(settings, None).run(UserInput(free_text=json.dumps(BRIEF)), Tracer(), allow_llm=False)
+    b = Agent(settings, None).run(UserInput(**BRIEF), Tracer(), allow_llm=False)
+    assert a.preferences.budget_inr == 2000 and [s.id for s in a.stops] == [s.id for s in b.stops]
+
+
+def test_fields_filled_in_on_the_form_win_over_pasted_json():
+    import json
+
+    got = UserInput(city="Pune", interests=["art"], free_text=json.dumps(BRIEF))
+    assert got.city == "Pune" and got.interests == ["art"]  # the form's answers stay
+    assert got.budget == 2000 and got.available_time == "4 hours"  # the gaps are filled from the paste
+
+
+@pytest.mark.parametrize("text", ["{not json", "[1, 2]", "{'city': 'Pune'}", '{"unrelated": 1}', "plan something fun", '"Pune"', "{}"])
+def test_text_that_is_not_a_brief_stays_free_text(text):
+    got = UserInput(free_text=text)
+    assert got.free_text == text and got.city is None and got.budget is None
+
+
+def test_pasted_json_with_odd_types_is_ignored_field_by_field_never_an_error():
+    got = UserInput(free_text='{"city": {"x": 1}, "budget": true, "mood": ["a"], "interests": [["nested"]], "constraints": "vegan", "evil": "x"}')
+    assert got.city is None and got.budget is None and got.mood is None and got.interests == []
+    assert got.constraints == ["vegan"]  # the one usable field is kept

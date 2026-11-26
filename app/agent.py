@@ -187,7 +187,8 @@ class Agent:
             if tried_live:
                 why = (
                     f"I don't have venue data for {name} yet. The live OpenStreetMap lookup returned nothing usable "
-                    "(its free public servers are often busy), so try again in a minute, or pick Bangalore, Pune or Gurugram."
+                    "(the place may not be on the map, or its free public servers are busy), so check the spelling, "
+                    "try again in a minute, or pick Bangalore, Pune or Gurugram."
                 )
             return self._generic(prefs, name, why, tracer)
 

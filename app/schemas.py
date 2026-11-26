@@ -1,6 +1,7 @@
 """Data shapes used across the agent. Everything the LLM returns is validated against these."""
 from __future__ import annotations
 
+import json
 import re
 from typing import Any, Literal
 
@@ -46,6 +47,43 @@ class UserInput(BaseModel):
     constraints: list[str] = Field(default_factory=list, max_length=12)
     start_time: str | None = Field(default=None, max_length=20)
     free_text: str | None = Field(default=None, max_length=1200)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _json_pasted_as_free_text(cls, data: Any) -> Any:
+        """A JSON object pasted into the free-text box is the structured input, so read it as such.
+
+        Only the known fields are taken, only with sensible types, and a field already filled in
+        (for example by the form) always wins. Anything else is left as ordinary free text.
+        """
+        raw = data.get("free_text") if isinstance(data, dict) else None
+        if not isinstance(raw, str) or not raw.lstrip().startswith("{"):
+            return data
+        try:
+            obj = json.loads(raw)
+        except (ValueError, RecursionError):
+            return data
+        if not isinstance(obj, dict):
+            return data
+
+        def plain(x: Any) -> bool:
+            return isinstance(x, (str, int, float)) and not isinstance(x, bool)
+
+        merged, matched = dict(data), False
+        for key in ("city", "budget", "available_time", "mood", "start_time", "interests", "constraints"):
+            value = obj.get(key)
+            if key in ("interests", "constraints"):
+                ok = plain(value) or (isinstance(value, list) and all(plain(x) for x in value))
+            else:
+                ok = plain(value)
+            if ok:
+                matched = True
+                if merged.get(key) in (None, "", []):
+                    merged[key] = value
+        if not matched:
+            return data  # a JSON-looking note with none of our fields: keep it as text
+        merged["free_text"] = obj["free_text"] if isinstance(obj.get("free_text"), str) else None
+        return merged
 
     @field_validator("city", "available_time", "mood", "start_time", "free_text", mode="before")
     @classmethod
