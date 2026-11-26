@@ -11,11 +11,11 @@ An AI agent that plans a fun, realistic Saturday. Give it a city, budget, time, 
 ## Try it
 
 1.  Open the app, fill in the form (for example Bangalore, ₹2000, 4 hours, "tired but wants to do something fun") and click **Plan my Saturday**. The plan appears and the **What the agent did** panel fills in step by step.
-2.  Leave the city empty. The agent asks one or two questions instead of guessing.
+2.  Fill in only a budget or a mood and leave the city empty. The agent asks one or two questions instead of guessing.
 3.  Ask for something almost impossible (vegan, no crowds, ₹300, evening, Gurugram). It finds what little fits and says plainly what it could not do.
 4.  Try a city with no curated data (Mumbai). It tries live OpenStreetMap data, and falls back to a labelled generic outline if that is unavailable.
 
-You can also paste free text such as `Relaxed evening in Pune, around Rs 1500, vegan, no alcohol, 3 hours from 5 pm.`
+You can also use the free-text box: paste a sentence such as `Relaxed evening in Pune, around Rs 1500, vegan, no alcohol, 3 hours from 5 pm.`, or paste the JSON from the brief and it is read as if you had filled in the form.
 
 ## What the assignment asked for, and where it is
 
@@ -200,7 +200,7 @@ Python 3.12 is chosen by `.python-version`. The free plan sleeps after about 15 
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q                          # about 580 tests, around 15 seconds, no network or API key needed
+pytest -q                          # about 600 tests, a minute or two, no network or API key needed
 SWEEP_N=2000 pytest tests/test_properties.py   # bigger randomised sweep
 python scripts/scenarios.py        # prints the rule-based (no model) plans for a spread of realistic inputs
 python scripts/nasty_inputs.py     # hostile and odd inputs, none may crash
