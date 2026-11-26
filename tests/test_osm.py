@@ -8,6 +8,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import logging
+import time
 
 import httpx
 import pytest
@@ -354,7 +355,7 @@ def test_a_failing_overpass_server_falls_over_to_the_next_one():
     assert hosts == ["nominatim.openstreetmap.org", "overpass-api.de", "overpass.private.coffee"]
 
 
-def test_when_every_overpass_server_fails_the_city_is_simply_unavailable():
+def test_when_every_source_fails_the_city_is_simply_unavailable():
     hosts = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -362,7 +363,106 @@ def test_when_every_overpass_server_fails_the_city_is_simply_unavailable():
         return httpx.Response(200, json=[CENTRE]) if request.url.host == "nominatim.openstreetmap.org" else httpx.Response(503, text="busy")
 
     assert osm.fetch_city("Mumbai", client=httpx.Client(transport=httpx.MockTransport(handler))) is None
-    assert hosts == ["nominatim.openstreetmap.org", "overpass-api.de", "overpass.private.coffee", "overpass.kumi.systems"]
+    overpass = [h for h in hosts if h != "nominatim.openstreetmap.org"]
+    assert overpass == ["overpass-api.de", "overpass.private.coffee", "overpass.kumi.systems"]
+    assert hosts.count("nominatim.openstreetmap.org") == 1 + len(osm.POI_PHRASES)  # the geocode, then every category search
+
+
+# ----------------------------------------------------- Nominatim category search as the fallback
+
+
+def poi(name, category, type_, id_=1, osm_type="node", **extra):
+    """A Nominatim jsonv2 search hit, as returned with extratags=1."""
+    row = {"osm_type": osm_type, "osm_id": id_, "lat": "19.07", "lon": "72.87", "category": category, "type": type_, "name": name}
+    if extra:
+        row["extratags"] = extra
+    return row
+
+
+POI_ROWS = {
+    "park": [poi("Lakeside Park", "leisure", "park", 101, "way")],
+    "museum": [poi("Folk Museum", "tourism", "museum", 102, opening_hours="Mo-Su 10:00-17:00")],
+    "attraction": [poi("Old Palace", "tourism", "attraction", 103)],
+    "cafe": [poi("Filter Coffee House", "amenity", "cafe", 104, **{"diet:vegetarian": "only"}), poi("Not A Venue", "building", "yes", 105)],
+    "restaurant": [poi("Thali Kitchen", "amenity", "restaurant", 106, cuisine="indian")],
+}
+
+
+def test_when_overpass_is_down_venues_come_from_the_nominatim_category_search():
+    phrases, overpass_hosts = [], []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host != "nominatim.openstreetmap.org":
+            overpass_hosts.append(request.url.host)
+            return httpx.Response(502, text="Bad Gateway")
+        q = request.url.params["q"]
+        if q == "Mumbai":
+            return httpx.Response(200, json=[CENTRE])  # the geocoding call
+        phrases.append(q)
+        assert request.url.params["bounded"] == "1" and request.url.params["extratags"] == "1" and "viewbox" in request.url.params
+        return httpx.Response(200, json=POI_ROWS.get(q, []))
+
+    city = osm.fetch_city("Mumbai", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    assert city is not None and city.source == "openstreetmap" and len(overpass_hosts) == 3
+    assert phrases == list(osm.POI_PHRASES)
+    by = {p.name: p for p in city.places}
+    assert set(by) == {"Lakeside Park", "Folk Museum", "Old Palace", "Filter Coffee House", "Thali Kitchen"}  # the building row is not a venue
+    assert by["Lakeside Park"].id == "osm-w101" and by["Lakeside Park"].kind == "activity"
+    assert by["Folk Museum"].hours == "10:00-17:00" and by["Filter Coffee House"].diet == "pure_veg"
+    assert all(p.source == "openstreetmap" for p in city.places)
+
+
+def test_a_quick_overpass_answer_means_no_category_searches_are_made():
+    phrases = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host == "nominatim.openstreetmap.org":
+            if request.url.params["q"] != "Mumbai":
+                phrases.append(request.url.params["q"])
+            return httpx.Response(200, json=[CENTRE])
+        return httpx.Response(200, json={"elements": good_elements()})
+
+    city = osm.fetch_city("Mumbai", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    assert city is not None and phrases == []
+
+
+def test_a_slow_overpass_does_not_hold_up_the_nominatim_result(monkeypatch):
+    monkeypatch.setattr(osm, "HEDGE_AFTER_S", 0.05)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host != "nominatim.openstreetmap.org":
+            time.sleep(1.5)  # a server that is up but crawling
+            return httpx.Response(200, json={"elements": good_elements()})
+        q = request.url.params["q"]
+        return httpx.Response(200, json=[CENTRE] if q == "Mumbai" else POI_ROWS.get(q, []))
+
+    t0 = time.monotonic()
+    city = osm.fetch_city("Mumbai", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    assert time.monotonic() - t0 < 1.2
+    assert city is not None and "Folk Museum" in {p.name for p in city.places}  # from Nominatim, not the slow Overpass answer
+
+
+def test_one_failed_category_search_does_not_spoil_the_rest():
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host != "nominatim.openstreetmap.org":
+            return httpx.Response(504, text="timeout")
+        q = request.url.params["q"]
+        if q == "park":
+            return httpx.Response(500, text="oops")
+        return httpx.Response(200, json=[CENTRE] if q == "Mumbai" else POI_ROWS.get(q, []))
+
+    city = osm.fetch_city("Mumbai", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    assert city is not None and "Lakeside Park" not in {p.name for p in city.places} and len(city.places) == 4
+
+
+def test_nominatim_hits_are_converted_to_overpass_shaped_elements_and_junk_is_dropped():
+    good = osm._poi_to_element(poi("Cafe One", "amenity", "cafe", 7, "way", opening_hours="Mo-Su 08:00-22:00"))
+    assert good == {"type": "way", "id": 7, "lat": 19.07, "lon": 72.87,
+                    "tags": {"opening_hours": "Mo-Su 08:00-22:00", "name": "Cafe One", "amenity": "cafe"}}
+    assert osm._poi_to_element({**poi("X", "amenity", "cafe"), "extratags": None})["tags"] == {"name": "X", "amenity": "cafe"}
+    for junk in (None, "text", [], {}, {**poi("X", "amenity", "cafe"), "name": ""}, {**poi("X", "amenity", "cafe"), "name": None},
+                 {**poi("X", "amenity", "cafe"), "lat": "north"}, {**poi("X", "amenity", "cafe"), "category": None}):
+        assert osm._poi_to_element(junk) is None
 
 
 def test_each_overpass_attempt_has_a_short_timeout_and_all_attempts_share_a_budget(monkeypatch):

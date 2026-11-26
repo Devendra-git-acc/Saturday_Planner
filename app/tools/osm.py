@@ -7,6 +7,7 @@ venue is marked as such. Be a good citizen: identify the app, throttle Nominatim
 from __future__ import annotations
 
 import logging
+import queue
 import re
 import threading
 import time
@@ -33,6 +34,15 @@ PER_SERVER_S = 9.0
 CACHE_TTL_S = 24 * 3600
 NEG_TTL_S = 10 * 60
 MAX_ACTIVITIES, MAX_FOOD = 30, 24
+
+# Overpass gives one rich answer but its public servers are often down for hours. If it has not
+# answered after HEDGE_AFTER_S (or fails sooner), Nominatim's category search is started as well and
+# whichever source delivers usable venues first wins. Nominatim allows one request per second, so
+# this path takes about POI_PHRASES * 1.1 s, which is why it is a fallback and not the first choice.
+HEDGE_AFTER_S = 3.0
+POI_BUDGET_S = 20.0
+POI_BOX_DEG = 0.045  # about 5 km each way: close to the Overpass radius
+POI_PHRASES = ("park", "garden", "museum", "attraction", "viewpoint", "monument", "cafe", "restaurant", "ice cream")
 
 _cache: dict[str, tuple[float, CityData | None]] = {}
 _lock = threading.Lock()  # guards the cache only
@@ -185,11 +195,13 @@ def _throttle() -> None:
         _last_nominatim = time.monotonic()
 
 
-def _overpass(http: httpx.Client, query: str, ua: str) -> list[dict[str, Any]]:
+def _overpass(http: httpx.Client, query: str, ua: str, stop: threading.Event | None = None) -> list[dict[str, Any]]:
     """POST the query to each public server in turn within one time budget; the first good answer wins."""
     last: Exception | None = None
     t0 = time.monotonic()
     for url in OVERPASS_URLS:
+        if stop is not None and stop.is_set():
+            break  # another source already delivered
         left = LOOKUP_BUDGET_S - (time.monotonic() - t0)
         if left < 4:
             break
@@ -201,6 +213,99 @@ def _overpass(http: httpx.Client, query: str, ua: str) -> list[dict[str, Any]]:
             log.warning("Overpass server %s failed: %s", url.split("/")[2], short(e))
             last = e
     raise last or RuntimeError("no Overpass server answered in time")
+
+
+def _poi_to_element(row: Any) -> dict[str, Any] | None:
+    """One Nominatim search hit -> the element shape Overpass returns, so `_to_place` handles both."""
+    if not isinstance(row, dict):
+        return None
+    name, kind, value = row.get("name"), row.get("category"), row.get("type")
+    if not (isinstance(name, str) and name.strip() and isinstance(kind, str) and isinstance(value, str)):
+        return None
+    try:
+        lat, lon = float(row["lat"]), float(row["lon"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    extra = row.get("extratags") if isinstance(row.get("extratags"), dict) else {}
+    tags = {str(k): str(v) for k, v in extra.items()}  # opening_hours, cuisine, diet:* when mapped
+    tags.update({"name": name, kind: value})
+    return {"type": str(row.get("osm_type") or "node"), "id": row.get("osm_id"), "lat": lat, "lon": lon, "tags": tags}
+
+
+def _nominatim_pois(http: httpx.Client, lat: float, lon: float, ua: str, stop: threading.Event) -> list[dict[str, Any]]:
+    """Category searches ('park', 'cafe', ...) inside a box around the centre. Slow (1 request/s) but steady."""
+    d = POI_BOX_DEG
+    box = f"{lon - d:.5f},{lat + d:.5f},{lon + d:.5f},{lat - d:.5f}"  # left, top, right, bottom
+    out: list[dict[str, Any]] = []
+    seen: set[tuple[Any, Any]] = set()
+    failures = 0
+    t0 = time.monotonic()
+    for phrase in POI_PHRASES:
+        if stop.is_set() or time.monotonic() - t0 > POI_BUDGET_S:
+            break
+        _throttle()
+        if stop.is_set():
+            break
+        try:
+            r = http.get(
+                NOMINATIM, headers={"User-Agent": ua}, timeout=8.0,
+                params={"q": phrase, "format": "jsonv2", "limit": 40, "extratags": 1, "bounded": 1, "viewbox": box},
+            )
+            r.raise_for_status()
+            rows = r.json()
+        except (httpx.HTTPError, ValueError) as e:
+            failures += 1
+            log.warning("Nominatim category search %r failed: %s", phrase, short(e))
+            continue
+        for row in rows if isinstance(rows, list) else []:
+            el = _poi_to_element(row)
+            if el is not None and (el["type"], el["id"]) not in seen:
+                seen.add((el["type"], el["id"]))
+                out.append(el)
+    if not out and failures:
+        raise RuntimeError(f"Nominatim category search failed ({failures} errors)")
+    return out
+
+
+def _gather(http: httpx.Client, query: str, ua: str, lat: float, lon: float) -> list[dict[str, Any]]:
+    """Venue elements from Overpass, or from Nominatim if Overpass is slow, empty or down."""
+    results: queue.Queue = queue.Queue()
+    stop = threading.Event()  # tells the slower source to quit once one has delivered
+
+    def launch(name: str, fn, *args) -> None:
+        def run() -> None:
+            try:
+                results.put((fn(*args), None))
+            except Exception as e:  # noqa: BLE001 - handed to the waiting caller through the queue
+                results.put((None, e))
+
+        threading.Thread(target=run, name=f"osm-{name}", daemon=True).start()
+
+    deadline = time.monotonic() + LOOKUP_BUDGET_S
+    launch("overpass", _overpass, http, query, ua, stop)
+    running, fallback_started, last = 1, False, None
+    try:
+        while running:
+            wait = max(0.0, deadline - time.monotonic()) if fallback_started else HEDGE_AFTER_S
+            try:
+                got, err = results.get(timeout=wait)
+            except queue.Empty:
+                if fallback_started:
+                    break  # out of time
+                log.info("Overpass has not answered after %.0f s; also asking Nominatim for venues", HEDGE_AFTER_S)
+                launch("nominatim", _nominatim_pois, http, lat, lon, ua, stop)
+                running, fallback_started = running + 1, True
+                continue
+            running -= 1
+            if err is None and got:
+                return got
+            last = err or last
+            if not fallback_started:  # the first source failed or came back empty: do not wait any longer
+                launch("nominatim", _nominatim_pois, http, lat, lon, ua, stop)
+                running, fallback_started = running + 1, True
+    finally:
+        stop.set()
+    raise last or RuntimeError("no OpenStreetMap source answered in time")
 
 
 def fetch_city(name: str, *, contact: str = "", client: httpx.Client | None = None, timeout: float = 20.0) -> CityData | None:
@@ -229,7 +334,7 @@ def fetch_city(name: str, *, contact: str = "", client: httpx.Client | None = No
         display = name.strip().title()
 
         q = _QUERY.format(r=RADIUS_M, lat=lat, lon=lon)
-        elements = _overpass(http, q, ua)
+        elements = _gather(http, q, ua, lat, lon)
         places: list[Place] = []
         seen: set[str] = set()
         elements.sort(key=lambda e: -len(e.get("tags") or {}))  # better-documented venues first

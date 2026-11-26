@@ -83,7 +83,7 @@ Why not let the model call tools freely? For a planner with hard limits (diet, b
 | `validatePlan` | Checks the schedule against every limit. Returns errors (must fix), major warnings (worth a repair) and minor notes. | No |
 | `generateFinalPlan` | Writes the headline, a reason per stop and the trade-offs from facts that code computed. Falls back to templates. | Yes, then a guard |
 | `chooseStartTime` | When no start time is given, plans a few candidate starts and keeps the best. | No |
-| `lookupLiveVenues` | OpenStreetMap lookup for a city with no curated data. | No |
+| `lookupLiveVenues` | OpenStreetMap lookup for a city with no curated data: Overpass first, with Nominatim's category search as a backup. | No |
 | `relaxConstraint` | Loosens one soft limit at a time and records it. | No |
 | `fallbackPlan` | Generic outline for when no venue-specific plan is possible. | No |
 | `askClarifyingQuestions` | Asks one or two questions when the city is missing or ambiguous. | No |
@@ -110,7 +110,7 @@ Diet handling is deliberately careful. Vegetarian excludes meat-focused places. 
 | Situation | What the agent does |
 | --- | --- |
 | City missing or ambiguous ("Pune or Bangalore") | Asks one or two questions instead of picking. |
-| City with no curated data | Tries live OpenStreetMap data. If that is slow, empty or unreachable, returns a clearly labelled generic outline. |
+| City with no curated data | Tries live OpenStreetMap data from Overpass and, if that is slow or down, from Nominatim's category search. Only if both fail does it return a clearly labelled generic outline. |
 | Nothing fits (for example ₹0 and "avoid crowds") | Relaxes soft limits in order and lists what it relaxed. Never relaxes diet, budget, hours or time. If still nothing, says so plainly. |
 | Model times out, errors or returns bad JSON | Retries once with the error fed back, then uses the rule-based step. A hard failure (bad key, quota, outage) turns the model off for that request, and a circuit breaker pauses calls for 45 seconds after repeated failures. |
 | Model proposes a plan that breaks a rule | The validator rejects it and the agent asks for a repair (at most 2), then falls back to the rule-based draft. |
@@ -130,7 +130,7 @@ Every tool call becomes an event with its name, input, a one-line result, status
 
 Bangalore (28 venues), Pune (24) and Gurugram (14) are curated JSON files in `app/data/`. Each venue has an area, typical cost and duration, Saturday opening windows, crowd level and peak hours, noise, energy, diet details and a "verify" note. **This is sample data written from general knowledge, not a live feed.** Prices and hours are approximate, Gurugram is the thinnest, and every plan says to check hours and prices before going. Budgets are for one person and cover venues plus getting around.
 
-Other cities use OpenStreetMap through Nominatim and Overpass, which are public servers that can be slow or rate-limited, so the lookup is best effort with a short timeout and a cache. OpenStreetMap has no prices and patchy opening hours, so those plans say what is guessed.
+Other cities use OpenStreetMap. The app asks Overpass for nearby venues in one request. Overpass is a free public service that is often slow or down, so if it has not answered after 3 seconds (or fails sooner) the app also runs Nominatim's category search (park, museum, cafe, restaurant and so on) around the city centre, one request per second as Nominatim's usage policy requires, and uses whichever source delivers first. A city that goes through the backup takes about 15 seconds the first time; results are cached for 24 hours. OpenStreetMap has no prices and patchy opening hours, so those plans say what is guessed.
 
 ## API
 
@@ -243,7 +243,7 @@ docs/            screenshots used here
 -   Venue data is approximate sample data for three cities. Gurugram is thin, so some requests there end in a short plan or an honest "nothing fits".
 -   Costs are for one person and are estimates. There is no live traffic, weather, ticket availability or opening-hours check.
 -   The rate limiter lives in memory and identifies clients by the last `X-Forwarded-For` address, so behind a shared proxy several visitors can share a bucket, and a restart resets it.
--   OpenStreetMap lookups depend on public servers and carry little price information.
+-   OpenStreetMap lookups depend on free public servers, can take about 15 seconds the first time for a new city, and carry little price information. The venues come from map tags, so quality varies by city.
 -   English only. The agent plans one Saturday, not a multi-day trip.
 
 ## How I used AI tools
