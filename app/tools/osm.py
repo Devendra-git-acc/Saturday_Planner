@@ -34,6 +34,7 @@ PER_SERVER_S = 9.0
 CACHE_TTL_S = 24 * 3600
 NEG_TTL_S = 10 * 60
 MAX_ACTIVITIES, MAX_FOOD = 30, 24
+MAX_PER_ACTIVITY_TYPE = 8  # a city with 23 markets must not crowd the museums and parks out of the 30 slots
 
 # Overpass gives one rich answer but its public servers are often down for hours. If it has not
 # answered after HEDGE_AFTER_S (or fails sooner), Nominatim's category search is started as well and
@@ -43,7 +44,7 @@ HEDGE_AFTER_S = 3.0
 POI_BUDGET_S = 20.0
 POI_BOX_DEG = 0.045  # about 5 km each way: close to the Overpass radius
 POI_PHRASES = ("park", "garden", "museum", "attraction", "viewpoint", "monument", "cafe", "restaurant", "ice cream",
-               "market", "shopping mall")
+               "marketplace", "mall")  # Nominatim finds nothing for "market" or "shopping mall", but these two work
 
 _cache: dict[str, tuple[float, CityData | None]] = {}
 _lock = threading.Lock()  # guards the cache only
@@ -348,15 +349,17 @@ def fetch_city(name: str, *, contact: str = "", client: httpx.Client | None = No
         seen: set[str] = set()
         elements.sort(key=lambda e: -len(e.get("tags") or {}))  # better-documented venues first
         counts = {"activity": 0, "food": 0}
+        per_type: dict[str, int] = {}
         for el in elements:
             p = _to_place(el, "city")
             if p is None or p.name.lower() in seen:
                 continue
             cap = MAX_ACTIVITIES if p.kind == "activity" else MAX_FOOD
-            if counts[p.kind] >= cap:
+            if counts[p.kind] >= cap or (p.kind == "activity" and per_type.get(p.category, 0) >= MAX_PER_ACTIVITY_TYPE):
                 continue
             seen.add(p.name.lower())
             counts[p.kind] += 1
+            per_type[p.category] = per_type.get(p.category, 0) + 1
             places.append(p)
         if len(places) >= 3:
             result = CityData(

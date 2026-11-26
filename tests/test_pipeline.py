@@ -672,6 +672,16 @@ def test_an_interest_with_no_places_in_the_data_is_not_blamed_on_a_rule():
     assert "I could not fit markets this time without breaking another rule." in plain
 
 
+def test_an_unverifiable_need_is_listed_once_even_if_it_was_also_split_into_parts(settings):
+    from app.agent import Agent
+    from app.trace import Tracer
+    res = Agent(settings, None).run(
+        UserInput(city="Pune", budget=2000, constraints=["wheelchair accessible, no long walks"], free_text="wheelchair accessible please"),
+        Tracer(), allow_llm=False)
+    mine = [c for c in res.cautions if c.startswith("I can't check")]
+    assert sum("wheelchair" in c for c in mine) == 1 and len(mine) == len(set(mine))
+
+
 def test_the_summary_says_when_a_lot_of_the_window_is_left_open():
     p = mk(start=19 * 60 + 30, minutes=270, budget_inr=900)
     report = estimate_cost(BLR, p, ds("blr-ich"))

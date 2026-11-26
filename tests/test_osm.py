@@ -248,7 +248,11 @@ def test_a_blank_name_makes_no_requests():
 
 
 def test_results_are_capped_deduped_and_sorted_by_documentation():
-    parks = [el("node", i, f"Park {i}", leisure="park") for i in range(60)]
+    # enough of several types that the overall cap (not the per-type cap) is what limits the activities
+    parks = [el("node", i, f"Park {i}", leisure="park") for i in range(20)]
+    parks += [el("node", 1000 + i, f"Garden {i}", leisure="garden") for i in range(20)]
+    parks += [el("node", 2000 + i, f"Viewpoint {i}", tourism="viewpoint") for i in range(20)]
+    parks += [el("node", 3000 + i, f"Attraction {i}", tourism="attraction") for i in range(20)]
     cafes = [el("node", 100 + i, f"Cafe {i}", amenity="cafe") for i in range(40)]
     dupes = [el("node", 200, "park 1", leisure="park"), el("node", 201, "PARK 1", leisure="garden")]
     rich = el("node", 300, "Best Documented Museum", tourism="museum", opening_hours="Mo-Su 10:00-18:00", website="w", phone="p", wheelchair="yes")
@@ -476,6 +480,14 @@ def test_markets_and_malls_are_busy_shopping_stops_that_avoid_crowds_can_filter_
     assert {c.place.name for c in anything.candidates} == {"Old Bazaar", "City Centre Mall", "Joggers Park"}
 
 
+def test_many_markets_do_not_crowd_museums_and_parks_out_of_the_activity_slots():
+    els = [el("node", 100 + i, f"Market {i}", amenity="marketplace", opening_hours="Mo-Su 10:00-20:00") for i in range(23)]
+    els += [el("node", 200 + i, f"Museum {i}", tourism="museum") for i in range(4)] + [el("way", 300, "Joggers Park", leisure="park")]
+    city = osm.fetch_city("Mumbai", client=FakeOSM(overpass={"elements": els}).client())
+    kinds = [p.category for p in city.places if p.kind == "activity"]
+    assert kinds.count("market") == osm.MAX_PER_ACTIVITY_TYPE and kinds.count("museum") == 4 and kinds.count("park") == 1
+
+
 def test_the_overpass_query_asks_for_markets_and_malls_too():
     fake = FakeOSM()
     assert osm.fetch_city("Mumbai", client=fake.client()) is not None
@@ -486,7 +498,8 @@ def test_the_overpass_query_asks_for_markets_and_malls_too():
 
 
 def test_the_category_search_also_looks_for_markets_and_malls():
-    assert {"market", "shopping mall"} <= set(osm.POI_PHRASES)
+    # checked against the real service: Nominatim finds nothing for "market" or "shopping mall"
+    assert {"marketplace", "mall"} <= set(osm.POI_PHRASES) and not {"market", "shopping mall"} & set(osm.POI_PHRASES)
     rows = [poi("Old Bazaar", "amenity", "marketplace", 41), poi("City Centre Mall", "shop", "mall", 42), poi("Corner Shop", "shop", "supermarket", 43)]
     places = [osm._to_place(e, "city") for e in map(osm._poi_to_element, rows)]
     assert [p.name if p else None for p in places] == ["Old Bazaar", "City Centre Mall", None]

@@ -404,8 +404,9 @@ class Agent:
         )
         cautions = user_cautions(v)
         # needs the data cannot answer (wheelchair access, halal, a toddler...) are never checked, so say so
-        cautions += [f"I can't check \"{c}\" against my venue data, so please confirm it with each place."
-                     for c in prefs.other_constraints]
+        unchecked = [c for c in prefs.other_constraints
+                     if not any(c != o and c.lower() in o.lower() for o in prefs.other_constraints)]  # "a, b" already covers "a"
+        cautions += [f"I can't check \"{c}\" against my venue data, so please confirm it with each place." for c in unchecked]
         return PlanResult(
             status="ok", headline=content.headline, summary=content.summary, city=city.display, data_source=source,
             stops=stops, totals=t, trade_offs=content.trade_offs, backup=content.backup, cautions=cautions,
