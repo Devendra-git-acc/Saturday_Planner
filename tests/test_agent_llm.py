@@ -27,6 +27,18 @@ def test_happy_path_uses_model_and_keeps_its_plan(run):
         assert tool in names
 
 
+def test_a_short_model_draft_on_a_long_day_is_stretched_to_use_the_window(run):
+    long_day = {**ASSIGNMENT, "available_time": "8 hours"}
+    llm = ScriptedLLM(draft=draft(*GOOD), final=final_for(GOOD))
+    result, _ = run(llm, **long_day)
+    assert result.mode == "ai" and [s.id for s in result.stops] == GOOD and llm.count("draft") == 1  # no repair round needed
+    t = result.totals
+    assert t.minutes_used >= 0.75 * t.minutes_available  # the same three stops took only about 3 hours before
+    assert result.status == "ok" and all(s.duration <= 1.6 * 150 for s in result.stops)
+    short, _ = run(ScriptedLLM(draft=draft(*GOOD), final=final_for(GOOD)), **ASSIGNMENT)  # a 4 hour window is left as it was
+    assert [s.duration for s in short.stops] == [75, 45, 62]
+
+
 def test_at_least_three_distinct_tools_appear_in_trace(run):
     result, tr = run(None, **ASSIGNMENT)
     assert len({e["tool"] for e in tr.events}) >= 5

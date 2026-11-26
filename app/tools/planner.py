@@ -144,6 +144,8 @@ def stretch_to_window(prefs: Preferences, city: CityData, plan: DraftPlan, *, fo
     if prefs.start_min is None or prefs.end_min is None or not prefs.minutes or not plan.stops:
         return plan
     by_id = city.by_id()
+    if any(st.place_id not in by_id for st in plan.stops):
+        return plan  # a model may invent venues; the validator rejects those, this step must not trip over them
 
     def judge(durations: list[tuple[str, int]]):
         rep = estimate_cost(city, prefs, [DraftStop(place_id=i, duration_min=d) for i, d in durations])

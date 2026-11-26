@@ -51,6 +51,7 @@ Rules
 - List stops in visiting order. Prefer 3-5 stops (2 if the window is short, up to 6 if it is long and energy is high).
 - Everything must fit inside the window: each stop's minutes + travel between stops. Use "travel_minutes_between_areas" (approximate) and prefer stops in the same or neighbouring areas to avoid zig-zagging across the city.
 - You may shorten a stop with duration_min but never below its min_min or above its max_min.
+- Use the window the person gave: aim to fill at least 75% of it. For a long window add more stops (up to 6, or 5 if energy is low) and give each a longer stay (up to its max_min) rather than ending the plan early.
 - Stay within budget_inr: venue costs plus about Rs 60-250 per cab/auto hop (walking between nearby stops is free).
 - Respect diet, crowd, noise, energy, indoor and alcohol preferences. Check each venue's "hours" against the time you plan to be there.
 - Cover the person's interests. Include a proper meal stop when the window overlaps lunch (12:00-15:30) or dinner (19:00-22:45). Do not put two food stops back to back unless one is a short coffee or dessert.

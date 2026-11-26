@@ -32,7 +32,7 @@ I chose this over letting the model call tools freely because for a planner the 
 | `parseUserPreferences` | Turns the form, JSON or text into preferences. The model can add details it finds in the text but can't remove a limit you gave. |
 | `getActivityOptions` | Filters activities by diet, budget, opening hours, crowds, alcohol and indoor-only, then scores the rest. |
 | `getFoodOptions` | The same for food, with meal times and vegan or Jain handling. |
-| `draftPlan` | Picks and orders the stops. Uses the model's draft, or a rule-based search without a model. |
+| `draftPlan` | Picks and orders the stops. Uses the model's draft, or a rule-based search without a model. On a long day it lets you stay longer at each stop, within reason, so more of your window is used. |
 | `estimateCost` | Schedules the stops: times, travel and fares, waiting for places to open, total cost. |
 | `validatePlan` | Checks the schedule against every limit. |
 | `generateFinalPlan` | Writes the headline, the reason for each stop and the trade-offs, using numbers the code already worked out. Uses templates if the model fails. |

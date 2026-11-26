@@ -28,7 +28,7 @@ from .tools import osm
 from .tools.costing import estimate_cost
 from .tools.finalize import generate_final_plan, pick_backups, trade_off_facts
 from .tools.options import get_activity_options, get_food_options, summarize
-from .tools.planner import choose_start, llm_draft, rule_plan
+from .tools.planner import choose_start, llm_draft, rule_plan, stretch_to_window
 from .tools.preferences import parse_user_preferences, set_window
 from .tools.validate import user_cautions, validate_plan
 from .trace import StepHandle, ToolInfo, Tracer
@@ -280,6 +280,9 @@ class Agent:
                     gate.absorb(info)
                 if draft is None:
                     break
+                # the model tends to stop early on a long day; let the person stay longer at each stop first
+                # (only kept when the plan is still valid), so a repair round is only spent if time is still empty
+                draft = stretch_to_window(prefs, city, draft, food_available=bool(foods.candidates))
                 ev = self._evaluate(tracer, city, prefs, draft, foods, "ai", final=k == self.s.max_repairs)
                 if best is None or ev.key > best.key:
                     best = ev
