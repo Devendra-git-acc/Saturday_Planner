@@ -455,6 +455,43 @@ def test_one_failed_category_search_does_not_spoil_the_rest():
     assert city is not None and "Lakeside Park" not in {p.name for p in city.places} and len(city.places) == 4
 
 
+def test_markets_and_malls_are_busy_shopping_stops_that_avoid_crowds_can_filter_out():
+    market = place(el("node", 30, "Old Bazaar", amenity="marketplace"))
+    mall = place(el("way", 31, "City Centre Mall", shop="mall"))
+    assert (market.kind, market.category, market.crowd, market.noise, market.cost) == ("activity", "market", "high", "loud", 0)
+    assert {"markets", "shopping"} <= set(market.tags) and not market.indoor
+    assert (mall.category, mall.crowd, mall.indoor) == ("mall", "high", True) and mall.tags == ["shopping"]
+    assert place(el(shop="supermarket")) is None and place(el(shop="clothes")) is None  # only real malls count
+    assert place(el(amenity="cafe")).crowd == "medium"  # everything else stays at the default
+
+    from app.schemas import Area, CityData, Preferences
+    from app.tools.options import get_activity_options
+    city = CityData(key="x", display="X", avg_speed_kmph=18.0, areas={"city": Area(name="X (centre)", lat=19.07, lon=72.87)},
+                    places=[market, mall, place(el("way", 32, "Joggers Park", leisure="park"))], source="openstreetmap")
+    calm = get_activity_options(Preferences(avoid_crowds=True, interests=["markets", "shopping"], start_min=600, end_min=840), city)
+    assert [c.place.name for c in calm.candidates] == ["Joggers Park"]
+    assert {d["name"] for d in calm.skipped_notable} == {"Old Bazaar", "City Centre Mall"}
+    assert all(d["reason"] == "crowded on Saturdays" for d in calm.skipped_notable)
+    anything = get_activity_options(Preferences(interests=["markets", "shopping"], start_min=600, end_min=840), city)
+    assert {c.place.name for c in anything.candidates} == {"Old Bazaar", "City Centre Mall", "Joggers Park"}
+
+
+def test_the_overpass_query_asks_for_markets_and_malls_too():
+    fake = FakeOSM()
+    assert osm.fetch_city("Mumbai", client=fake.client()) is not None
+    from urllib.parse import parse_qs
+    body = next(r for r in fake.requests if r.url.host == "overpass-api.de").content.decode()
+    query = parse_qs(body)["data"][0]
+    assert "marketplace" in query and '["shop"="mall"]' in query
+
+
+def test_the_category_search_also_looks_for_markets_and_malls():
+    assert {"market", "shopping mall"} <= set(osm.POI_PHRASES)
+    rows = [poi("Old Bazaar", "amenity", "marketplace", 41), poi("City Centre Mall", "shop", "mall", 42), poi("Corner Shop", "shop", "supermarket", 43)]
+    places = [osm._to_place(e, "city") for e in map(osm._poi_to_element, rows)]
+    assert [p.name if p else None for p in places] == ["Old Bazaar", "City Centre Mall", None]
+
+
 def test_nominatim_hits_are_converted_to_overpass_shaped_elements_and_junk_is_dropped():
     good = osm._poi_to_element(poi("Cafe One", "amenity", "cafe", 7, "way", opening_hours="Mo-Su 08:00-22:00"))
     assert good == {"type": "way", "id": 7, "lat": 19.07, "lon": 72.87,

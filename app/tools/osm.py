@@ -42,7 +42,8 @@ MAX_ACTIVITIES, MAX_FOOD = 30, 24
 HEDGE_AFTER_S = 3.0
 POI_BUDGET_S = 20.0
 POI_BOX_DEG = 0.045  # about 5 km each way: close to the Overpass radius
-POI_PHRASES = ("park", "garden", "museum", "attraction", "viewpoint", "monument", "cafe", "restaurant", "ice cream")
+POI_PHRASES = ("park", "garden", "museum", "attraction", "viewpoint", "monument", "cafe", "restaurant", "ice cream",
+               "market", "shopping mall")
 
 _cache: dict[str, tuple[float, CityData | None]] = {}
 _lock = threading.Lock()  # guards the cache only
@@ -66,16 +67,23 @@ _CATEGORIES: dict[tuple[str, str], tuple] = {
     ("amenity", "cafe"): ("food", "cafe", ["coffee", "food"], 300, 45, "08:00-22:00", "low", "moderate", ["breakfast", "snack"]),
     ("amenity", "restaurant"): ("food", "restaurant", ["food"], 450, 60, "11:30-22:30", "low", "moderate", ["lunch", "dinner"]),
     ("amenity", "ice_cream"): ("food", "dessert", ["food"], 150, 25, "11:00-22:00", "low", "moderate", ["snack"]),
+    # same values the curated cities use for markets and malls
+    ("amenity", "marketplace"): ("activity", "market", ["markets", "shopping"], 0, 60, "10:00-21:00", "medium", "loud", []),
+    ("shop", "mall"): ("activity", "mall", ["shopping"], 0, 90, "10:00-22:00", "low", "loud", []),
 }
+# OpenStreetMap says nothing about crowds, so every venue is "medium" except these, which are
+# busy on a Saturday almost anywhere. That is what lets "avoid crowds" keep them out of a plan.
+_CROWD = {"market": "high", "mall": "high"}
 
 _QUERY = """[out:json][timeout:15];
 (
   nwr(around:{r},{lat},{lon})["leisure"~"^(park|garden|nature_reserve)$"]["name"];
   nwr(around:{r},{lat},{lon})["tourism"~"^(museum|gallery|attraction|viewpoint|zoo)$"]["name"];
   nwr(around:{r},{lat},{lon})["historic"~"^(monument|fort|castle|memorial|archaeological_site)$"]["name"];
-  nwr(around:{r},{lat},{lon})["amenity"~"^(theatre|arts_centre|library|cafe|restaurant|ice_cream)$"]["name"];
+  nwr(around:{r},{lat},{lon})["amenity"~"^(theatre|arts_centre|library|cafe|restaurant|ice_cream|marketplace)$"]["name"];
+  nwr(around:{r},{lat},{lon})["shop"="mall"]["name"];
 );
-out center 120;"""
+out center 160;"""
 
 _DAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
 
@@ -152,7 +160,7 @@ def _to_place(el: dict[str, Any], area_key: str) -> Place | None:
     if lat is None or lon is None:
         return None
     cat = None
-    for key in ("leisure", "tourism", "amenity"):
+    for key in ("leisure", "tourism", "amenity", "shop"):
         if tags.get(key) and (key, tags[key]) in _CATEGORIES:
             cat = _CATEGORIES[(key, tags[key])]
             break
@@ -179,7 +187,8 @@ def _to_place(el: dict[str, Any], area_key: str) -> Place | None:
         id=f"osm-{el.get('type', 'x')[0]}{el.get('id')}",
         name=name, kind=kind, category=category, area=area_key,  # type: ignore[arg-type]
         tags=list(ptags), cost=cost, duration=dur, hours=hrs if verified_hours else hours,  # type: ignore[arg-type]
-        energy=energy, crowd="medium", noise=noise, indoor=kind == "food" or category in ("museum", "gallery", "theatre", "library"),
+        energy=energy, crowd=_CROWD.get(category, "medium"), noise=noise,
+        indoor=kind == "food" or category in ("museum", "gallery", "theatre", "library", "mall"),
         diet=diet, vegan_friendly=vegan, meal=list(meal), note=note,
         verify="Price, hours and crowd level are estimates" + ("" if not verified_hours else " (hours from OpenStreetMap)") + " - check before going.",
         lat=float(lat), lon=float(lon), source="openstreetmap",

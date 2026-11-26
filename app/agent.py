@@ -373,7 +373,9 @@ class Agent:
         missing = [i for i in prefs.interests if i not in covered]
         skipped = [*acts.skipped_notable, *foods.skipped_notable]
         skipped.sort(key=lambda d: 0 if d["reason"] == "crowded on Saturdays" else 1)
-        facts = trade_off_facts(prefs, report, skipped, relaxed_msgs, missing)
+        in_data = {t for p in city.places for t in p.tags}
+        facts = trade_off_facts(prefs, report, skipped, relaxed_msgs, missing,
+                                [i for i in missing if i not in in_data], city.display)
         backups = pick_backups({s.id for s in report.stops}, {city.by_id()[s.id].area for s in report.stops}, acts.candidates, foods.candidates)
 
         with tracer.step("generateFinalPlan", inp=f"{plural(len(report.stops), 'validated stop')}") as st:
@@ -401,6 +403,9 @@ class Agent:
             minutes_used=report.total_minutes, travel_minutes=report.travel_minutes,
         )
         cautions = user_cautions(v)
+        # needs the data cannot answer (wheelchair access, halal, a toddler...) are never checked, so say so
+        cautions += [f"I can't check \"{c}\" against my venue data, so please confirm it with each place."
+                     for c in prefs.other_constraints]
         return PlanResult(
             status="ok", headline=content.headline, summary=content.summary, city=city.display, data_source=source,
             stops=stops, totals=t, trade_offs=content.trade_offs, backup=content.backup, cautions=cautions,

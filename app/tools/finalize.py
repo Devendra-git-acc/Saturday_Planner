@@ -51,6 +51,8 @@ def trade_off_facts(
     skipped: list[dict],
     relaxed: list[str],
     missing_interests: list[str],
+    not_in_data: list[str] | None = None,
+    city_name: str = "this city",
 ) -> list[str]:
     facts: list[str] = []
     remaining = (prefs.budget_inr or 0) - report.total_cost
@@ -75,8 +77,12 @@ def trade_off_facts(
     for item in skipped[:2]:
         extra = " and you asked to avoid crowds" if item["reason"] == "crowded on Saturdays" and prefs.avoid_crowds else ""
         facts.append(f"I left out {item['name']} because it {_clause(item['reason'])}{extra}.")
-    if missing_interests:
-        facts.append("I could not fit " + ", ".join(missing_interests) + " this time without breaking another rule.")
+    no_data = [i for i in missing_interests if i in (not_in_data or [])]
+    no_fit = [i for i in missing_interests if i not in no_data]
+    if no_data:
+        facts.append(f"My data for {city_name} has no places for {', '.join(no_data)}, so none are in this plan.")
+    if no_fit:
+        facts.append("I could not fit " + ", ".join(no_fit) + " this time without breaking another rule.")
     for r in relaxed:
         facts.append(r)
     return facts

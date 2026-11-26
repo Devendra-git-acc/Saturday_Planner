@@ -662,6 +662,16 @@ def test_rule_plan_fills_most_of_a_long_open_day():
     assert report.total_minutes >= 0.75 * 420 and validate_plan(report, p, BLR).ok
 
 
+def test_an_interest_with_no_places_in_the_data_is_not_blamed_on_a_rule():
+    p = mk(interests=["markets", "history"])
+    report = estimate_cost(BLR, p, ds("blr-cubbon"))
+    facts = trade_off_facts(p, report, [], [], ["markets", "history"], ["markets"], "Delhi")
+    assert "My data for Delhi has no places for markets, so none are in this plan." in facts
+    assert "I could not fit history this time without breaking another rule." in facts
+    plain = trade_off_facts(p, report, [], [], ["markets"])  # callers that do not know keep the old wording
+    assert "I could not fit markets this time without breaking another rule." in plain
+
+
 def test_the_summary_says_when_a_lot_of_the_window_is_left_open():
     p = mk(start=19 * 60 + 30, minutes=270, budget_inr=900)
     report = estimate_cost(BLR, p, ds("blr-ich"))

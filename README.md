@@ -55,7 +55,7 @@ I chose this over letting the model call tools freely because for a planner the 
 
 Bangalore (28 venues), Pune (24) and Gurugram (14) are JSON files in `app/data/`. I wrote them from general knowledge, so prices and hours are approximate, and every plan says to check before you go.
 
-For other cities the app asks Overpass for places near the city centre. Overpass is a free public server that is often slow or down, so if it hasn't answered after 3 seconds the app also runs Nominatim's category search (park, museum, cafe and so on) at one request per second, and uses whichever answers first. Results are cached for a day. OpenStreetMap has no prices, so for those cities the prices are guesses.
+For other cities the app asks Overpass for parks, museums, historic sites, cafes, restaurants, markets and malls near the city centre. Overpass is a free public server that is often slow or down, so if it hasn't answered after 3 seconds the app also runs Nominatim's category search (park, museum, cafe and so on) at one request per second, and uses whichever answers first. Results are cached for a day. OpenStreetMap has no prices, so for those cities the prices are guesses. It has no crowd levels either: every place counts as moderately busy, except markets and malls, which I treat as busy. So "avoid crowds" really only filters those two there. Needs like wheelchair access are listed under "check before you go", not checked against the map.
 
 ## API
 
