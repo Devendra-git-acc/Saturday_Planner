@@ -313,6 +313,7 @@ def test_agent_falls_back_to_the_generic_outline_when_live_data_fails(live_setti
     tracer = Tracer()
     res = Agent(live_settings, None).run(UserInput(city="Mumbai", budget=1500), tracer, allow_llm=False)
     assert res.status == "fallback" and res.data_source == "generic" and "Mumbai" in res.message
+    assert "OpenStreetMap lookup returned nothing usable" in res.message and "try again" in res.message  # blames the busy servers, not missing data
     step = next(e for e in tracer.events if e["tool"] == "lookupLiveVenues")
     assert step["state"] == "fallback" and "no usable live data" in step["summary"]
     assert any(e["tool"] == "fallbackPlan" for e in tracer.events)
@@ -325,7 +326,7 @@ def test_live_lookup_is_never_attempted_for_curated_cities_or_when_disabled(live
     monkeypatch.setattr("app.agent.osm.fetch_city", forbidden)
     assert Agent(live_settings, None).run(UserInput(city="Pune", budget=1500), Tracer(), allow_llm=False).status == "ok"
     res = Agent(settings, None).run(UserInput(city="Mumbai", budget=1500), Tracer(), allow_llm=False)  # live data off
-    assert res.status == "fallback"
+    assert res.status == "fallback" and "curated cities" in res.message and "OpenStreetMap" not in res.message
 
 
 def test_the_trace_is_json_clean_when_osm_is_involved(live_settings, monkeypatch):

@@ -171,7 +171,8 @@ class Agent:
         # 2 ─ which data do we have for this city?
         city: CityData | None = get_city(prefs.city) if prefs.city_known else None
         source = "curated"
-        if city is None and self.s.enable_live_data:
+        tried_live = city is None and self.s.enable_live_data
+        if tried_live:
             with tracer.step("lookupLiveVenues", inp=prefs.city_display or prefs.city) as st:
                 city = osm.fetch_city(prefs.city_display or prefs.city, contact=self.s.contact_email)
                 if city:
@@ -181,11 +182,14 @@ class Agent:
                     st.status = "fallback"
                     st.summary = f"no usable live data for '{prefs.city_display}'"
         if city is None:
-            return self._generic(
-                prefs, prefs.city_display or prefs.city,
-                f"I don't have venue data for {prefs.city_display or prefs.city} yet (curated cities: Bangalore, Pune, Gurugram).",
-                tracer,
-            )
+            name = prefs.city_display or prefs.city
+            why = f"I don't have venue data for {name} yet (curated cities: Bangalore, Pune, Gurugram)."
+            if tried_live:
+                why = (
+                    f"I don't have venue data for {name} yet. The live OpenStreetMap lookup returned nothing usable "
+                    "(its free public servers are often busy), so try again in a minute, or pick Bangalore, Pune or Gurugram."
+                )
+            return self._generic(prefs, name, why, tracer)
 
         # 3 ─ pick a start time if none was given
         if prefs.start_min is None:
