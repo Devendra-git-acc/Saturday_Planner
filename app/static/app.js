@@ -188,36 +188,6 @@
     hideFormError();
   }
 
-  /** Fills the form from an API-shaped input (used by the example buttons). */
-  function fillForm(input) {
-    resetForm();
-    const set = (id, v) => { if (v != null) $(id).value = String(v); };
-    set("#city", input.city);
-    set("#budget", input.budget);
-    set("#time", input.available_time);
-    set("#mood", input.mood);
-    set("#free", input.free_text);
-    if (input.start_time) {
-      const opt = [...$("#start").options].find((o) => o.value.toLowerCase().replace(/\s/g, "") === String(input.start_time).toLowerCase().replace(/\s/g, ""));
-      if (opt) $("#start").value = opt.value;
-    }
-    for (const i of input.interests || []) {
-      const box = form.querySelector(`input[name="interest"][value="${CSS.escape(String(i).toLowerCase())}"]`);
-      if (box) box.checked = true;
-    }
-    const extras = [];
-    for (const c of input.constraints || []) {
-      const s = String(c).toLowerCase();
-      const diet = ["vegan", "jain", "vegetarian"].find((d) => s.includes(d));
-      if (diet) form.querySelector(`input[name="diet"][value="${diet}"]`).checked = true;
-      else if (s.includes("crowd")) form.querySelector('input[name="limit"][value="avoid crowded places"]').checked = true;
-      else if (s.includes("alcohol")) form.querySelector('input[name="limit"][value="no alcohol"]').checked = true;
-      else if (s.includes("indoor")) form.querySelector('input[name="limit"][value="indoor only"]').checked = true;
-      else extras.push(c);
-    }
-    if (extras.length) $("#extra").value = extras.join(", ");
-  }
-
   /* --------------------------------------------------------------- views */
 
   function emptyView(title, text) {
@@ -522,7 +492,6 @@
     goBtn.disabled = on;
     goBtn.textContent = on ? "Planning" : "Plan my Saturday";
     stopBtn.hidden = !on;
-    for (const b of document.querySelectorAll(".example")) b.disabled = on;
   }
 
   function showAlert(message) {
@@ -618,23 +587,6 @@
 
   /* ------------------------------------------------------------- startup */
 
-  async function loadExamples() {
-    const ul = $("#example-list");
-    try {
-      const res = await fetch("/api/examples");
-      if (!res.ok) throw new Error("no examples");
-      const examples = await res.json();
-      for (const ex of examples) {
-        const btn = h("button", { type: "button", class: "example", "data-id": ex.id },
-          h("span", { class: "ex-title" }, ex.title), h("span", { class: "ex-blurb" }, ex.blurb));
-        btn.addEventListener("click", () => { fillForm(ex.input); onSubmit(); });
-        ul.append(h("li", null, btn));
-      }
-    } catch {
-      $(".examples").hidden = true;
-    }
-  }
-
   async function loadStatus() {
     try {
       const res = await fetch("/api/health");
@@ -657,6 +609,5 @@
     announce("Stopped");
   });
   clearBtn.addEventListener("click", () => { resetForm(); $("#city").focus(); });
-  loadExamples();
   loadStatus();
 })();

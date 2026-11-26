@@ -10,10 +10,10 @@ An AI agent that plans a fun, realistic Saturday. Give it a city, budget, time, 
 
 ## Try it
 
-1.  Open the app and click **The assignment example**. The plan appears and the **What the agent did** panel fills in step by step.
-2.  Click **A vague request**. The agent asks one or two questions instead of guessing.
-3.  Click **Almost impossible** (vegan, no crowds, ₹300, evening, Gurugram). It finds what little fits and says plainly what it could not do.
-4.  Click **A city with no data** (Mumbai). It tries live OpenStreetMap data, and falls back to a labelled generic outline if that is unavailable.
+1.  Open the app, fill in the form (for example Bangalore, ₹2000, 4 hours, "tired but wants to do something fun") and click **Plan my Saturday**. The plan appears and the **What the agent did** panel fills in step by step.
+2.  Leave the city empty. The agent asks one or two questions instead of guessing.
+3.  Ask for something almost impossible (vegan, no crowds, ₹300, evening, Gurugram). It finds what little fits and says plainly what it could not do.
+4.  Try a city with no curated data (Mumbai). It tries live OpenStreetMap data, and falls back to a labelled generic outline if that is unavailable.
 
 You can also paste free text such as `Relaxed evening in Pune, around Rs 1500, vegan, no alcohol, 3 hours from 5 pm.`
 
@@ -191,7 +191,7 @@ Set these as environment variables (or in `.env`). Only `OPENAI_API_KEY` matters
 1.  Push this folder to a GitHub repository.
 2.  In Render choose **New + > Blueprint** and pick the repository. It reads `render.yaml` (Python web service, free plan, health check at `/healthz`).
 3.  When prompted, paste `OPENAI_API_KEY` in the Render dashboard. The key lives only there, never in the repository.
-4.  When the deploy is live, open `/api/health`. It should show `"ai_enabled": true` and the model name. Then open the home page and run the assignment example; the note under the plan headline should read "Planned with an AI model (...) and checked by code."
+4.  When the deploy is live, open `/api/health`. It should show `"ai_enabled": true` and the model name. Then open the home page and plan a Saturday in Bangalore; the note under the plan headline should read "Planned with an AI model (...) and checked by code."
 5.  Put the URL at the top of this README.
 
 Python 3.12 is chosen by `.python-version`. The free plan sleeps after about 15 minutes idle, so open the URL shortly before sharing it. The `Procfile` and `Dockerfile` work on other hosts that run a Python web process or a container (Railway, Fly.io, Cloud Run and similar); they only need `PORT` and the same environment variables.
