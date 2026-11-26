@@ -1,6 +1,6 @@
 # Perfect Saturday Planner
 
-**Live app:** [https://YOUR-SERVICE.onrender.com](https://YOUR-SERVICE.onrender.com) (On the free host the app sleeps when idle, so the first load can take about a minute. Open it once before you share it.)
+**Live app:** [https://perfect-saturday-planner-1vp5.onrender.com](https://perfect-saturday-planner-1vp5.onrender.com) (On the free host the app sleeps when idle, so the first load can take about a minute. Open it once before you share it.)
 
 An AI agent that plans a fun, realistic Saturday. Give it a city, budget, time, mood, interests and limits, as a form, as JSON or in plain words. It answers with a timed itinerary that has travel and cost worked out, a reason for every stop, the trade-offs it made, and a step-by-step trace of what it did.
 
